@@ -1,12 +1,12 @@
 import React from 'react';
-import { Link } from "react-router-dom";
+import LiferayLink from '../../../common/services/liferay/LiferayLink';
 
 const HelloFoo = () => (
 	<div className="hello-foo">
 		<h1>Hello Foo!</h1>
 		<ul>
-			<li><Link to="/">World</Link></li>
-			<li><Link to="/hello-bar">Bar</Link></li>
+			<li><LiferayLink to="/">World</LiferayLink></li>
+			<li><LiferayLink to="/hello-bar">Bar</LiferayLink></li>
 		</ul>
 	</div>
 );

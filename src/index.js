@@ -1,38 +1,45 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+
 import {
 	createBrowserRouter,
 	RouterProvider,
   } from "react-router-dom";
 
 import {Liferay} from './common/services/liferay/liferay';
+import {LiferayConf} from './common/services/liferay/liferay';
 import HelloBar from './routes/hello-bar/pages/HelloBar';
 import HelloFoo from './routes/hello-foo/pages/HelloFoo';
 import HelloWorld from './routes/hello-world/pages/HelloWorld';
+
+import Callback from './common/services/liferay/Callback';
 
 import './common/styles/index.scss';
 
 import * as serviceWorker from './serviceWorker';
 
-const ELEMENT_ID = 'fox-remote-app';
-const FRIENDLY_URL = 'fox-remote-app';
+let client = Liferay.OAuth2Client.FromParameters({
+	clientId: "fox-remote-app",
+	homePageURL: "https://alpha"
+});
 
-let routeContext;
-let friendlyURLContext;
-let linkContext;
-
-if(Liferay.Mock) {
-	routeContext = "";
-	friendlyURLContext = "/";
-	linkContext = routeContext;
-} else {
-	routeContext = Liferay.ThemeDisplay.getLayoutRelativeURL();
-	friendlyURLContext = "/-/" + FRIENDLY_URL + "/";
-	linkContext = routeContext + friendlyURLContext;
-}
+/*
+let promise = client.fetch(
+	'https://alpha/o/headless-admin-user/v1.0/my-user-account'
+  ).then(
+	r => console.log('success:', r)
+  ).catch(
+	e => console.log('error:', e)
+  );
+*/
 
 const App = ({route}) => {
+
+	if (route === 'callback') {
+		return <Callback client={client} />;
+	}
+
 	if (route === 'hello-bar') {
 		return <HelloBar />;
 	}
@@ -42,23 +49,37 @@ const App = ({route}) => {
 	}
 
 	return (
-		<HelloWorld />
+		<HelloWorld client={client} />
 	);
 };
 
 const router = createBrowserRouter([
 	{
-		path: "hello-bar",
+		path: "/callback",		
+		element:
+			<App
+				route="callback"
+		  />,
+	},	
+	{
+		path: LiferayConf.friendlyURLContext + "/hello-bar",
 		element:
 			<App
 				route="hello-bar"
 		  />,
 	},	
 	{
-		path: "hello-foo",
+		path: LiferayConf.friendlyURLContext + "/hello-foo",
 		element:
 			<App
 				route="hello-foo"
+		  />,
+	},	
+	{
+		path: LiferayConf.friendlyURLContext + "/",		
+		element:
+			<App
+				route="/"
 		  />,
 	},	
 	{
@@ -68,29 +89,21 @@ const router = createBrowserRouter([
 				route="/"
 		  />,
 	}
-], {basename: linkContext});
+], {basename: LiferayConf.linkContext});
 
 class WebComponent extends HTMLElement {
-	constructor() {
-		super();
-/*
-		this.oAuth2Client = Liferay.OAuth2Client.FromUserAgentApplication(
-			'easy-oauth-application-user-agent'
-		);
-*/
-	}
 
 	connectedCallback() {
 		ReactDOM.render(
-			<RouterProvider router={router} fallbackElement={<h1>Toto</h1>} />,
+			<RouterProvider router={router} />,
 			this
 		);
 
 	}
 }
 
-if (!customElements.get(ELEMENT_ID)) {
-	customElements.define(ELEMENT_ID, WebComponent);
+if (!customElements.get(LiferayConf.customElementName)) {
+	customElements.define(LiferayConf.customElementName, WebComponent);
 }
 
 serviceWorker.register();
